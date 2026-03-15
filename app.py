@@ -1,23 +1,27 @@
 from flask import Flask, request, jsonify, send_file
 from docx import Document
-from docx.shared import Pt
-import json, io, os
+import json, io, os, re
 
 app = Flask(__name__)
 
 @app.route('/preventivo', methods=['POST'])
 def genera_preventivo():
-    dati = request.json
+    raw = request.get_data(as_text=True)
+    
+    # Rimuovi backtick e "json" se presenti
+    clean = re.sub(r'```json|```', '', raw).strip()
+    
+    try:
+        dati = json.loads(clean)
+    except:
+        return jsonify({'error': 'JSON non valido', 'raw': raw}), 400
     
     doc = Document()
-    
-    # Titolo
     doc.add_heading('PREVENTIVO', 0)
     doc.add_paragraph(f"Indirizzo: {dati.get('indirizzo', '')}")
     doc.add_paragraph(f"Data: {dati.get('data', '')}")
     doc.add_paragraph('')
     
-    # Tabella
     table = doc.add_table(rows=1, cols=5)
     table.style = 'Table Grid'
     hdr = table.rows[0].cells
@@ -29,13 +33,12 @@ def genera_preventivo():
     
     for riga in dati.get('righe', []):
         row = table.add_row().cells
-        row[0].text = f"{riga['descrizione']}\n{riga['dettaglio']}"
-        row[1].text = str(riga['persone'])
-        row[2].text = str(riga['ore'])
-        row[3].text = f"{riga['prezzo_ora']} €"
-        row[4].text = f"{riga['totale']} €"
+        row[0].text = f"{riga.get('descrizione','')}\n{riga.get('dettaglio','')}"
+        row[1].text = str(riga.get('persone', 1))
+        row[2].text = str(riga.get('ore', 0))
+        row[3].text = f"{riga.get('prezzo_ora', 0)} €"
+        row[4].text = f"{riga.get('totale', 0)} €"
     
-    # Totali
     r = table.add_row().cells
     r[3].text = 'Subtotale'
     r[4].text = f"{dati.get('subtotale', 0)} €"
