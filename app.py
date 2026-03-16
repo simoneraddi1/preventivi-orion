@@ -8,6 +8,7 @@ app = Flask(__name__)
 def genera_preventivo():
     raw = request.get_data(as_text=True)
     clean = re.sub(r'```json|```', '', raw).strip()
+    clean = clean.replace("\n", " ")
 
     try:
         dati = json.loads(clean)
