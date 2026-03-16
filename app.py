@@ -38,10 +38,14 @@ def genera_preventivo():
     doc.save(buf)
     buf.seek(0)
 
-    return send_file(buf,
-                     as_attachment=True,
-                     download_name="preventivo.docx",
-                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    buf.seek(0)
+
+return send_file(
+    buf,
+    mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    as_attachment=True,
+    download_name="preventivo.docx"
+)
 
 @app.route('/')
 def home():
